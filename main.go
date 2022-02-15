@@ -81,6 +81,7 @@ func decodeMSG(message string, privateKey string, publicKey string) {
 
 	msg, _ := crypto.NewPGPMessageFromArmored(message)
 	decoded, _ := privateKeyRing.Decrypt(msg, publicKeyRing, crypto.GetUnixTime())
+	privateKeyRing.ClearPrivateParams()
 	fmt.Println(decoded.GetString())
 
 }
