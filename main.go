@@ -19,7 +19,9 @@ func main() {
 	writeKeyToDisk(keys.Public, "public.key")
 	writeKeyToDisk(keys.Private, "private.key")
 
-	encodeMSG("hello world", keys.Public)
+	msg := encodeMSG("hello world", keys.Public)
+	decodeMSG(msg, keys.Private, keys.Public)
+
 }
 
 func generateKeys() *Keys {
@@ -69,10 +71,16 @@ func encodeMSG(message string, publicKey string) string {
 	return armor
 }
 
-func decodeMSG(message string, privateKey string) {
+func decodeMSG(message string, privateKey string, publicKey string) {
 	//TODO:
+	publicKeyObj, _ := crypto.NewKeyFromArmored(publicKey)
+	publicKeyRing, _ := crypto.NewKeyRing(publicKeyObj)
 
-	fmt.Println(armor)
-	return armor
+	privateKeyObj, _ := crypto.NewKeyFromArmored(privateKey)
+	privateKeyRing, _ := crypto.NewKeyRing(privateKeyObj)
+
+	msg, _ := crypto.NewPGPMessageFromArmored(message)
+	decoded, _ := privateKeyRing.Decrypt(msg, publicKeyRing, crypto.GetUnixTime())
+	fmt.Println(decoded.GetString())
 
 }
