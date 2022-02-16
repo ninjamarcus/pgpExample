@@ -20,8 +20,8 @@ func main() {
 	writeKeyToDisk(keys.Private, "private.key")
 
 	msg := encodeMSG("hello world", keys.Public)
-	decodeMSG(msg, keys.Private, keys.Public)
-
+	readPublicKeyFromFile()
+	decodeMSG(msg, readPrivateKeyFromFile(), readPublicKeyFromFile())
 }
 
 func generateKeys() *Keys {
@@ -57,12 +57,25 @@ func writeKeyToDisk(keyValue string, filename string) {
 	}
 }
 
-func readPublicKey() {
+func readPublicKeyFromFile() *crypto.KeyRing {
 
+	f, err := os.Open("public.key")
+	if err != nil {
+		panic(err)
+	}
+	publicKeyObj, err := crypto.NewKeyFromArmoredReader(f)
+	publicKeyRing, err := crypto.NewKeyRing(publicKeyObj)
+	return publicKeyRing
 }
 
-func readPrivateKey() {
-
+func readPrivateKeyFromFile() *crypto.KeyRing {
+	f, err := os.Open("private.key")
+	if err != nil {
+		panic(err)
+	}
+	privateKeyOjb, _ := crypto.NewKeyFromArmoredReader(f)
+	privateKeyRing, _ := crypto.NewKeyRing(privateKeyOjb)
+	return privateKeyRing
 }
 
 func encodeMSG(message string, publicKey string) string {
@@ -71,13 +84,7 @@ func encodeMSG(message string, publicKey string) string {
 	return armor
 }
 
-func decodeMSG(message string, privateKey string, publicKey string) {
-	//TODO:
-	publicKeyObj, _ := crypto.NewKeyFromArmored(publicKey)
-	publicKeyRing, _ := crypto.NewKeyRing(publicKeyObj)
-
-	privateKeyObj, _ := crypto.NewKeyFromArmored(privateKey)
-	privateKeyRing, _ := crypto.NewKeyRing(privateKeyObj)
+func decodeMSG(message string, privateKeyRing *crypto.KeyRing, publicKeyRing *crypto.KeyRing) {
 
 	msg, _ := crypto.NewPGPMessageFromArmored(message)
 	decoded, _ := privateKeyRing.Decrypt(msg, publicKeyRing, crypto.GetUnixTime())
